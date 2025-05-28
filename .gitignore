@@ -172,3 +172,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+02-experiment-tracking/output/
+02-experiment-tracking/taxi_data/
