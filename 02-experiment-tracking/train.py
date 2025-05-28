@@ -1,6 +1,7 @@
 import os
 import pickle
 import click
+import mlflow
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
@@ -18,6 +19,9 @@ def load_pickle(filename: str):
     help="Location where the processed NYC taxi trip data was saved"
 )
 def run_train(data_path: str):
+
+    mlflow.set_experiment("experiment_tracking_homework")
+    mlflow.sklearn.autolog(log_datasets=False)
 
     X_train, y_train = load_pickle(os.path.join(data_path, "train.pkl"))
     X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
