@@ -1,0 +1,15 @@
+artifact_uri: file:///workspaces/mlops_zoomcamp/02-experiment-tracking/mlruns/843546244153722401/ee1822d0d37a441faefc2d2d56f0672a/artifacts
+end_time: 1748417554011
+entry_point_name: ''
+experiment_id: '843546244153722401'
+lifecycle_stage: active
+run_id: ee1822d0d37a441faefc2d2d56f0672a
+run_name: incongruous-asp-154
+run_uuid: ee1822d0d37a441faefc2d2d56f0672a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748416752648
+status: 3
+tags: []
+user_id: codespace

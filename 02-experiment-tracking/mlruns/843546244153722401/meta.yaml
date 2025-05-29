@@ -1,0 +1,6 @@
+artifact_location: file:///workspaces/mlops_zoomcamp/02-experiment-tracking/mlruns/843546244153722401
+creation_time: 1748416751885
+experiment_id: '843546244153722401'
+last_update_time: 1748416751885
+lifecycle_stage: active
+name: experiment_tracking_homework
