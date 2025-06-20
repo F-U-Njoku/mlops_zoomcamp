@@ -1,122 +1,76 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-get_ipython().system('pip freeze | grep scikit-learn')
-
-
-# In[2]:
-
-
-get_ipython().system('python -V')
-
-
-# In[3]:
-
-
+import uuid
 import pickle
+import argparse
 import numpy as np
 import pandas as pd
 
 
-# In[4]:
+parser = argparse.ArgumentParser()
+parser.add_argument("year", type=int)
+parser.add_argument("month", type=int)
+args = parser.parse_args()
 
+def load_model():
+    with open('model.bin', 'rb') as f_in:
+        dv, model = pickle.load(f_in)
 
-with open('model.bin', 'rb') as f_in:
-    dv, model = pickle.load(f_in)
+    print(f"Artifacts loaded.")
+    return dv, model
 
-
-# In[5]:
-
-
-categorical = ['PULocationID', 'DOLocationID']
-
-def read_data(filename):
+def read_data(filename, features):
+    
     df = pd.read_parquet(filename)
 
     df['duration'] = df.tpep_dropoff_datetime - df.tpep_pickup_datetime
     df['duration'] = df.duration.dt.total_seconds() / 60
 
     df = df[(df.duration >= 1) & (df.duration <= 60)].copy()
+    df[features] = df[features].fillna(-1).astype('int').astype('str')
 
-    df[categorical] = df[categorical].fillna(-1).astype('int').astype('str')
-
+    print(f"File read from {filename}.")
     return df
 
+def apply_model(df, features):
+    dv, model = load_model()
+    dicts = df[features].to_dict(orient='records')
+    X_val = dv.transform(dicts)
+    y_pred = model.predict(X_val)
 
-# In[6]:
+    print(f"Predictions done.")
+    print(np.average(y_pred))
+    return y_pred
+    
+def generate_uuids(n):
+    ride_ids = []
+    for i in range(n):
+        ride_ids.append(str(uuid.uuid4()))
 
+    return ride_ids
 
-df = read_data('https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-03.parquet')
+def return_result(n, predictions, output_file):
+    generate_uuids(n)
+    df_result = pd.DataFrame(data={"ride_id":generate_uuids(n), "prediction": predictions})
+    df_result.to_parquet(
+        output_file,
+        engine='pyarrow',
+        compression=None,
+        index=False
+        )
+    print(f"File written to {output_file}.")
+    return  
 
+def run():
+    year = args.year
+    month = args.month
+    input_file = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+    output_file = f'output/yellow_tripdata/{year:04d}-{month:02d}.parquet'
+    features = ['PULocationID', 'DOLocationID']
 
-# In[7]:
+    df = read_data(input_file, features)
+    predictions = apply_model(df, features)
+    return_result(len(df), predictions, output_file)
 
-
-dicts = df[categorical].to_dict(orient='records')
-X_val = dv.transform(dicts)
-y_pred = model.predict(X_val)
-
-
-# In[9]:
-
-
-np.std(y_pred)
-
-
-# ### Q1. Notebook
-# What's the standard deviation of the predicted duration for this dataset? **6.24**
-
-# In[11]:
-
-
-def add_id(df, year, month):
-    df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')
-    return df
-
-
-# In[14]:
-
-
-year = 2023
-month = 3
-output_file = output_file = f'output/yellow_tripdata/{year:04d}-{month:02d}.parquet'
-
-
-# In[35]:
-
-
-df_result = pd.DataFrame(data={"ride_id":df["ride_id"], "prediction": y_pred})
-df_result.to_parquet(
-    output_file,
-    engine='pyarrow',
-    compression=None,
-    index=False
-)
-
-
-# In[36]:
-
-
-get_ipython().system('ls -lh output/yellow_tripdata')
-
-
-# ### Q2. Preparing the output
-# What's the size of the output file? **66M**
-
-# ### Q3. Creating the scoring script
-# Which command you need to execute for that?
-
-# In[37]:
-
-
-get_ipython().system('jupyter convert --to script starter.ipynb')
-
-
-# In[ ]:
-
-
+if __name__ == '__main__':
+    run()
 
 
